@@ -1,0 +1,107 @@
+﻿using System;
+using System.Collections.Generic;
+using static LCI_Korniienko.Evaluation.Utilities;
+
+namespace LCI_Korniienko.Components
+{
+    class Constant : Expression
+    {
+        // classification of constants into an mathematical operator,
+        // a numeric constant, a boolean value or a sequence of characters
+        public enum Type
+        {
+            Operator, Numeric, Boolean, Characters
+        }
+
+        // content of the constant
+        private string content;
+        // type classification
+        private Type type;
+
+        public Constant(string c)
+        {
+            this.content = c;
+            DetermineType();
+        }
+
+        // determines the constant type with trying to parse an integer,
+        // matching to a list of math operators or otherwise, classifying as characters
+        private void DetermineType()
+        {
+            if (new List<string>() { "+", "-", "*", "/", "=" }.Contains(this.content))
+            {
+                this.type = Type.Operator;
+            }
+            else if (Int32.TryParse(this.content, out int _))
+            {
+                this.type = Type.Numeric;
+            }
+            else if (new List<string>() { "True", "False" }.Contains(this.content))
+            {
+                this.type = Type.Boolean;
+            }
+            else 
+            {
+                this.type = Type.Characters;
+            }
+        }
+
+        public string GetContent()
+        {
+            return this.content;
+        }
+
+        public Type GetConstantType()
+        {
+            return this.type;
+        }
+
+        // collects no free variables because there can be none here
+        public override List<string> GetFreeVars()
+        {
+            return new List<string>();
+        }
+
+        // collects no bound variables because there can be none here
+        public override List<string> GetBoundVars()
+        {
+            return new List<string>();
+        }
+
+        // tries to reduce this constant
+        public override Expression Reduce(Evaluation _, bool annotate)
+        {
+            // a constant is already in normal form
+            lastOperation = Operation.None;
+            return this;
+        }
+
+        // nothing to expand because a constant does not contain a variable 
+        public override Expression ExpandVariable(bool annotate)
+        {
+            // a constant is already in normal form
+            lastOperation = Operation.None;
+            return this;
+        }
+
+        // this constant is equal to another one if the type and content are equal
+        public override bool Equals(Expression other)
+        {
+            if (other is Constant)
+            {
+                var otherConst = other as Constant;
+                return this.type.Equals(otherConst.GetConstantType()) && this.content.Equals(otherConst.GetContent());
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        // converts to string by simply returning the constant's content
+        public override string ToString()
+        { 
+            return this.content;
+        }
+    }
+}
